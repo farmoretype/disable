@@ -1,0 +1,41 @@
+-- Disable animations for other players' characters, but leave your own character unaffected
+local function disableOtherPlayerAnimations(player)
+    -- Check if the player has a character and it is not the local player
+    if player == game.Players.LocalPlayer then return end  -- Don't affect the local player's animations
+
+    local character = player.Character
+    if not character then return end
+    
+    -- Get the humanoid of the other player's character
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        -- Stop all animation tracks in the humanoid for the other player
+        for _, track in pairs(humanoid:GetChildren()) do
+            if track:IsA("AnimationTrack") then
+                track:Stop()  -- Stop animations that aren't related to movement
+            end
+        end
+        
+        -- Prevent further animations by removing the Animator component
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if animator then
+            animator:Destroy()
+        end
+    end
+end
+
+-- Disable animations for all existing players except the local player
+for _, player in pairs(game.Players:GetPlayers()) do
+    if player ~= game.Players.LocalPlayer and player.Character then
+        disableOtherPlayerAnimations(player)
+    end
+end
+
+-- Connect events to disable animations for new players except the local player
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if player ~= game.Players.LocalPlayer then
+            disableOtherPlayerAnimations(player)
+        end
+    end)
+end)
